@@ -1,0 +1,42 @@
+---
+title: "Ejercicio Grupal: Paquetes BioConductor"
+author: "Eduardo Arrieta"
+date: "23/2/2021"
+output: html_document
+---
+
+### Integrantes:
+* Carlos Michel Mourra Diaz
+* Dante Adonis Torres Sepulveda
+* Eduardo Alejandro Arrieta Donato
+* Omar Daniel Lopez Olmos
+
+El ejercicio consistía en revisar el estado de algunos paquetes pertenecientes a BioConductor, observando su disponibilidad en sistemas operativos, preguntas pendientes y documentación. Al final de cada pequete visto concluímaos con una calificación final tomando en cuenta la presentación y sencillez de su docuemntación, las preguntas dejadas por usuarios y si pasó las pruebas en cada SO en tiempo y forma.
+
+### Discusión
+
+1.- **Bayesian Hidden Markov:** No hay preguntas, pasa las pruebas para todos pero no hay linux binario, pocas descargas pero puede ser porque es demasiado específico, buena documentacion. Calificacion final 8.
+
+2.- **An R toolkit for non-coding RNA:** Fallo pruebas en linux, no hizo una pruebas en binario. No hay preguntas, buena documentacion, pocas descargas aun que sea mas general que el anterior. Calificacion final 7.
+
+3.- **Toxico Genomic Data:** No hay preguntas, pasa pruebas para todos pero no hay linux binario, demasiadas dependencias, más descargas que los dos anteriores. Documentación MUY corta pero MUY bonita. Calificación final 8.5
+
+4.- **ChromeSScape**: No tiene preguntas, muchísimas dependencias, pasó las pruebas pero no tiene linux binario. Muy buena y bonita documentación. Calificación final 9.5
+
+5.- **Mutational Signature Comprehensive Analisis Toolkit:**  Muchas dependencias, se ve que no ha habido muchos cambios y la página puede estar un poco obsoleta. La documentacion está bonita y bien explicada.  Calificacion Final 8.5
+
+6.- **VERSO:** Pocas dependencias, pasa todo los sistemas operativos menos el linux binario, es un paquete muy útil para la situación de ahorita pero es extrañamente poco descargado, no tiene documentación en HTML pero la tiene en PDF. Calificación Final 8.5
+
+7.- **RIPAT:** Un número normal de dependencias, no hay preguntas, pasó todas las pruebas menos el linux binario y la documentación está MUY completa y bien explicada. Calificacion final 9.5
+
+8.- **VELOCIRAPTOR:** Buen número de descargas y de dependencias, pasó todas las pruebas menos la de binario y la documentación es bonita y completa. Además tiene un buen nombre que apela al sentido del humor del usuario. Calificacion Final 9
+
+### Conslusiones del equipo
+
+El paquete RIPAT (Retroviral Integration Pattern Analysis Tool), fue quien obtuvo una mayor calificación final, este se desarrolla como un paquete R para el análisis de distribución y anotación de sitios de integración retroviral. Lo que nos agrado bastante fue lo bien que está redactada la docuemntación, tiene un HTML indexado con las funciones que tiene, ejemplos de cómo usarla y gráficas detalladas y con colores.
+
+Así como ChromeSScape, obtuvo la misma calificación final, teniendo una documentación buena, sin embargo, el gran número de dependencias nos preocupa ya que en un futuro puede llegar a tner problemas con versiones desactualizadas.
+
+### Observaciones individuales
+
+Me fue grato encontrar que estos paquetes de R tienen un documentación que en promedio es decente y confiable. También me soprendí con la cantidad de código que existe escrito en R para temas de analisis biológico/genómico, sobre todo para líneas de investigación muy específicas. Por mi lado, el paquete que más me llamó la atención fue Toxico Genomic Data porque desconocía totalmente la existencia del tema, mucho menos que hay código que permite el analisis de este tipo de datos.
