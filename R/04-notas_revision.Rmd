@@ -1,0 +1,79 @@
+---
+title: "04-notas_revision"
+author: "Eduardo Arrieta"
+date: "26/2/2021"
+output: pdf_document
+---
+
+```{r}
+speaqeasy_data <- file.path(tempdir(), "rse_speaqeasy.RData")
+download.file("https://github.com/LieberInstitute/SPEAQeasy-example/blob/master/rse_speaqeasy.RData?raw=true", speaqeasy_data, mode = "wb")
+```
+
+```{r message=FALSE}
+library("SummarizedExperiment")
+```
+
+```{r}
+load(speaqeasy_data, verbose = TRUE)
+```
+
+```{r}
+rse_gene
+```
+¿Cuantos genes y muestras tenemos en estos datos?
+- 60609 genes y 40 muestras 
+¿Hay diferencias en totalAssignedGene o mitoRate entre los grupos de diagnosis (PrimaryDx)?
+Grafica la expresión de SNAP25 para cada grupo de diagnosis.
+Sugiere un modelo estadistico que podríamos usar en una análisis de expresión diferencial. Verifica que si sea un modelo full rank. ¿Cúal sería el o los coeficientes de interés?
+
+```{r}
+rse_gene$PrimaryDx
+rse_gene$mitoRate
+lenrse_gene$totalAssignedGene
+```
+```{r}
+m<-'Bipolar'
+Bipo<-(rse_gene$PrimaryDx==m)
+control<-(rse_gene$PrimaryDx!=m)
+rse_gene$Bipo <- factor(ifelse(rse_gene$PrimaryDx == m, "Bipo", "Control"))
+library("ggplot2")
+ggplot(as.data.frame(colData(rse_gene)), aes(y =totalAssignedGene , x = Bipo)) +
+     geom_boxplot() +
+     theme_bw(base_size = 20) +
+     ylab("") +
+     xlab("Grupo")
+#ggplot(as.data.frame(colData(rse_gene)), aes(y =mitoRate , x = Bipo)) +
+ #    geom_boxplot() +
+  #   theme_bw(base_size = 20) +
+   #  ylab("") +
+    # xlab("Grupo")
+
+```
+```{r}
+library("iSEE")
+iSEE::iSEE(rse_gene)
+```
+```{r}
+
+sampleData <- data.frame(grupo=rse_gene$PrimaryDx, 
+                         sexo=rse_gene$Sex, edadMuerte=rse_gene$AgeDeath, )
+ 
+vd <- ExploreModelMatrix::VisualizeDesign(
+    sampleData = sampleData,
+    designFormula = ~ grupo + grupo:sexo + grupo:edadMuerte,
+    #designFormula = ~ sexo + grupo, #+ edadMuerte,
+    textSizeFitted = 4
+)
+cowplot::plot_grid(plotlist = vd$plotlist)
+
+app <- ExploreModelMatrix(
+    sampleData = sampleData,
+    designFormula = ~ grupo + grupo:sexo + grupo:edadMuerte)
+    #designFormula = ~ sexo + grupo, #+ edadMuerte,
+
+if (interactive()) shiny::runApp(app)
+```
+Quitar others
+ver tablas 
+summarized
