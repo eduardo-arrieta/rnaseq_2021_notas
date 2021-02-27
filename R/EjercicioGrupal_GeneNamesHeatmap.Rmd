@@ -1,0 +1,175 @@
+---
+title: 'Ejercicio Grupal: GeneNames en Heatmap'
+author: "Eduardo Arrieta"
+date: "27/2/2021"
+output: html_document
+---
+```{r echo=FALSE, message=FALSE}
+# ExploreModelMatrix
+## Datos de ejemplo
+sampleData <- data.frame(
+  genotype = rep(c("A", "B"), each = 4),
+  treatment = rep(c("ctrl", "trt"), 4)
+)
+```
+
+```{r echo=FALSE, message=FALSE}
+genotype = rep(c("A", "B"), each = 4)
+treatment = rep(c("ctrl", "trt"), 4)
+## Creemos las imágenes usando ExploreModelMatrix
+vd <- ExploreModelMatrix::VisualizeDesign(
+  sampleData = sampleData,
+  designFormula = ~ genotype + treatment,
+  textSizeFitted = 4
+)
+
+```
+
+```{r echo=FALSE, message=FALSE}
+library(ExploreModelMatrix)
+```
+
+```{r echo=FALSE, message=FALSE}
+# Trabajando con RNA
+library("recount3")
+```
+
+```{r echo=FALSE, message=FALSE}
+human_projects <- available_projects()
+
+rse_gene_SRP045638 <- create_rse(
+  subset(
+    human_projects,
+    project == "SRP045638" & project_type == "data_sources"
+  )
+)
+
+assay(rse_gene_SRP045638, "counts") <- compute_read_counts(rse_gene_SRP045638)
+# En age, número negativos indican individuos pre-natales
+# Algunos datso están en caracter cuando denben estar en numerico
+```
+
+```{r echo=FALSE, message=FALSE}
+# Corrección
+rse_gene_SRP045638$sra.sample_attributes <- gsub("dev_stage;;Fetal\\|", "", rse_gene_SRP045638$sra.sample_attributes)
+```
+
+```{r echo=FALSE, message=FALSE}
+# Ahora si se expande
+rse_gene_SRP045638 <- expand_sra_attributes(rse_gene_SRP045638)
+```
+
+```{r echo=FALSE, message=FALSE}
+# Aún hay cosas que molesta
+
+# Corrección
+## Pasar de character a nuemric o factor
+rse_gene_SRP045638$sra_attribute.age <- as.numeric(rse_gene_SRP045638$sra_attribute.age)
+rse_gene_SRP045638$sra_attribute.disease <- factor(rse_gene_SRP045638$sra_attribute.disease)
+rse_gene_SRP045638$sra_attribute.RIN <- as.numeric(rse_gene_SRP045638$sra_attribute.RIN)
+rse_gene_SRP045638$sra_attribute.sex <- factor(rse_gene_SRP045638$sra_attribute.sex)
+```
+
+```{r echo=FALSE, message=FALSE}
+## Encontraremos diferencias entre muestra prenatalas vs postnatales
+rse_gene_SRP045638$prenatal <- factor(ifelse(rse_gene_SRP045638$sra_attribute.age < 0, "prenatal", "postnatal"))
+```
+
+```{r echo=FALSE, message=FALSE}
+# ver si hay baja calidad en mis datos
+## http://research.libd.org/recount3-docs/docs/quality-check-fields.html
+rse_gene_SRP045638$assigned_gene_prop <- rse_gene_SRP045638$recount_qc.gene_fc_count_all.assigned / rse_gene_SRP045638$recount_qc.gene_fc_count_all.total
+```
+
+```{r echo=FALSE, message=FALSE}
+## Guardemos nuestro objeto entero por si luego cambiamos de opinión
+rse_gene_SRP045638_unfiltered <- rse_gene_SRP045638
+```
+
+```{r echo=FALSE, message=FALSE}
+rse_gene_SRP045638 <- rse_gene_SRP045638[, rse_gene_SRP045638$assigned_gene_prop > 0.3]
+
+## Calculemos los niveles medios de expresión de los genes en nuestras
+## muestras.
+## Ojo: en un análisis real probablemente haríamos esto con los RPKMs o CPMs
+## en vez de las cuentas.
+gene_means <- rowMeans(assay(rse_gene_SRP045638, "counts"))
+```
+
+```{r echo=FALSE, message=FALSE}
+## Eliminamos genes
+rse_gene_SRP045638 <- rse_gene_SRP045638[gene_means > 0.1, ]
+```
+
+```{r echo=FALSE, message=FALSE}
+# NORMALIZACIÓN
+library("edgeR") # BiocManager::install("edgeR", update = FALSE)
+dge <- DGEList(
+  counts = assay(rse_gene_SRP045638, "counts"),
+  genes = rowData(rse_gene_SRP045638)
+)
+dge <- calcNormFactors(dge)
+```
+
+```{r echo=FALSE, message=FALSE}
+mod <- model.matrix(~ prenatal + sra_attribute.RIN + sra_attribute.sex + assigned_gene_prop,
+                    data = colData(rse_gene_SRP045638)
+)
+```
+
+```{r echo=FALSE, message=FALSE}
+library("limma")
+```
+
+```{r echo=FALSE, message=FALSE}
+vGene <- voom(dge, mod, plot = FALSE)
+
+eb_results <- eBayes(lmFit(vGene))
+
+de_results <- topTable(
+  eb_results,
+  coef = 2,
+  number = nrow(rse_gene_SRP045638),
+  sort.by = "none"
+)
+```
+
+
+```{r echo=FALSE, message=FALSE}
+## Extraer valores de los genes de interés
+exprs_heatmap <- vGene$E[rank(de_results$adj.P.Val) <= 50, ]
+
+## Creemos una tabla con información de las muestras
+## y con nombres de columnas más amigables
+df <- as.data.frame(colData(rse_gene_SRP045638)[, c("prenatal", "sra_attribute.RIN", "sra_attribute.sex")])
+colnames(df) <- c("AgeGroup", "RIN", "Sex")
+```
+
+```{r echo=FALSE, message=FALSE}
+## Hagamos un heatmap
+library("pheatmap")
+```
+
+## Del código anterior
+```{r}
+head(exprs_heatmap)
+```
+
+## Ejercicio 
+Ponerle los nombres de los genes al heatmap
+```{r}
+our_match <- which(rowRanges(rse_gene_SRP045638)$gene_id %in% rownames(exprs_heatmap))
+
+rownames(exprs_heatmap) <- rowRanges(rse_gene_SRP045638)$gene_name[our_match]
+
+pheatmap(
+  exprs_heatmap,
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  show_rownames = TRUE,
+  show_colnames = FALSE,
+  annotation_col = df
+)
+# El PDF se encunetra en imagenes como Heatmap.pdf
+```
+

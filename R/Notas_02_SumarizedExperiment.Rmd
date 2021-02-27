@@ -1,7 +1,17 @@
+---
+title: "SumarizedExperiment"
+author: "Eduardo Arrieta"
+date: "27/2/2021"
+output: html_document
+---
+
+```{r message=FALSE}
 ## Lets build our first SummarizedExperiment object
 library("SummarizedExperiment")
 ## ?SummarizedExperiment
+```
 
+```{r}
 ## De los ejemplos en la ayuda oficial
 
 ## Creamos los datos para nuestro objeto de tipo SummarizedExperiment
@@ -31,41 +41,25 @@ rse <- SummarizedExperiment(
   rowRanges = rowRanges,
   colData = colData
 )
+```
 
+```{r}
 ## Exploremos el objeto resultante
 rse
+```
 
+```{r}
 # Cantidad de cromosomas
 seqlevels(rse)
+```
 
-## Ejercicio
-#---------------------
-## Comando 1
-# Imprime los primeros dos genes del objeto a lo largo de todas la muestras
-rse[1:2, ]
-## Comando 2
-# Imprimirá todos los genes en las muestras A, D Y F
-rse[, c("A", "D", "F")]
-
-#---------------------
-
+```{r}
 # Almacenado en colData Names
 rse$Treatment
+```
 
+```{r eval=FALSE}
 ## Explora el objeto rse de forma interactiva
 library("iSEE")
 iSEE::iSEE(rse)
-
-# Ejercicio ISEE
-## Descarguemos unos datos de spatialLIBD
-sce_layer <- spatialLIBD::fetch_data("sce_layer")
-iSEE::iSEE(sce_layer)
-
-rowRanges(sce_layer[c('ENSG00000168314', 'ENSG00000183036', 'ENSG00000197971'),])$gene_name
-# [1] "MOBP" "PCP4" "MBP"
-
-# Generación de un subset
-sce_short_3 <- sce_layer[c('ENSG00000168314', 'ENSG00000183036', 'ENSG00000197971'),]
-iSEE::iSEE(sce_short_3)
-sce_short_3
-iSEE::iSEE(sce_layer[c('ENSG00000168314', 'ENSG00000183036', 'ENSG00000197971'),])
+```
