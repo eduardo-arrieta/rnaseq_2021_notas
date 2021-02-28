@@ -1,0 +1,46 @@
+---
+title: "Revisión"
+author: "Eduardo Arrieta"
+date: "28/2/2021"
+output: html_document
+---
+
+## Discusión en clase
+* ¿Debemos explorar las relaciones entre nuestras variables con información de nuestras muestras previo a hacer un análisis de expresión diferencial?
+
+Ya que para generar un buen modelo hay que saber como se relacionan nuestros datos de acuerdo a sus caracteríticas.
+
+* ¿Por qué usamos el paquete edgeR?
+
+Para normalizar adecuadamente nuestras muestras eliminando el composition bias, específicamente usamos la función calcNormfactors() 
+
+Ver /rnaseq_2021_notas/figuras/compositionbias_example.png
+
+* ¿Por qué es importante el argumento sort.by en topTable()?
+
+Para conservar el orden original de nuestros datos para facilitar el manejo de diferentes objetos 
+
+* ¿Por qué es importante el argumento coef en topTable()?
+
+Es coeficiente de interés de nuestro modelo estadístico
+
+```{r}
+speaqeasy_data <- file.path(tempdir(), "rse_speaqeasy.RData")
+download.file("https://github.com/LieberInstitute/SPEAQeasy-example/blob/master/rse_speaqeasy.RData?raw=true", speaqeasy_data, mode = "wb")
+```
+
+```{r message=FALSE}
+library("SummarizedExperiment")
+```
+
+```{r}
+load(speaqeasy_data, verbose = TRUE)
+```
+
+```{r}
+rse_gene
+```
+
+### ¿Cuantos genes y muestras tenemos en estos datos?
+
+Hay 60 609 genes en 40 muestras 

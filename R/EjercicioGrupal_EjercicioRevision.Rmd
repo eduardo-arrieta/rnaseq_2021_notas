@@ -1,0 +1,119 @@
+---
+title: "Ejercicio de Revisión"
+author: "Eduardo Arrieta"
+date: "28/2/2021"
+output: html_document
+---
+### Del código anterior
+```{r echo=FALSE, message=FALSE}
+speaqeasy_data <- file.path(tempdir(), "rse_speaqeasy.RData")
+download.file("https://github.com/LieberInstitute/SPEAQeasy-example/blob/master/rse_speaqeasy.RData?raw=true", speaqeasy_data, mode = "wb")
+```
+
+```{r message=FALSE, echo=FALSE}
+library("SummarizedExperiment")
+```
+
+```{r message=FALSE, echo=FALSE}
+load(speaqeasy_data, verbose = TRUE)
+```
+
+```{r}
+rse_gene
+```
+
+¿Hay diferencias en totalAssignedGene o mitoRate entre los grupos de diagnosis (PrimaryDx)?
+
+Exploración del objeto
+
+```{r}
+rse_gene$PrimaryDx
+```
+```{r}
+rse_gene$mitoRate
+```
+```{r}
+rse_gene$totalAssignedGene
+```
+
+```{r}
+## Exploremos la variable de PrimaryDx
+table(rse_gene$PrimaryDx)
+```
+
+```{r}
+## Eliminemos el diagnosis "Other" porque no tiene información
+rse_gene$PrimaryDx <- droplevels(rse_gene$PrimaryDx)
+table(rse_gene$PrimaryDx)
+```
+```{r}
+## Exploremos numéricamente diferencias entre grupos de diagnosis para
+## varias variables
+with(colData(rse_gene), tapply(totalAssignedGene, PrimaryDx, summary))
+```
+```{r}
+with(colData(rse_gene), tapply(mitoRate, PrimaryDx, summary))
+```
+
+
+```{r}
+# Gráficas comparativas
+Bipolar <- (rse_gene$PrimaryDx == 'Bipolar')
+Control <- (rse_gene$PrimaryDx != 'Bipolar')
+rse_gene$Grupo <- factor(ifelse(rse_gene$PrimaryDx == 'Bipolar', 
+                               "Bipolar", "Control"))
+```
+```{r message=FALSE}
+library("ggplot2")
+```
+```{r}
+par(mfrow=c(1,2))
+
+ggplot(as.data.frame(colData(rse_gene)), aes(y = totalAssignedGene , x = Grupo)) +
+     geom_boxplot() +
+     theme_bw(base_size = 20) +
+     ylab("totalAssignedGene") +
+     xlab("Diagnosis")
+
+ggplot(as.data.frame(colData(rse_gene)), aes(y = mitoRate , x = Grupo)) +
+     geom_boxplot() +
+     theme_bw(base_size = 20) +
+     ylab("mitoRate") +
+     xlab("Diagnosis")
+```
+
+Grafica la expresión de SNAP25 para cada grupo de diagnosis.
+```{r eval=FALSE}
+library("iSEE")
+iSEE::iSEE(rse_gene)
+# El PDF se guardó en figuras como expresionSNAP25.pdf
+```
+Sugiere un modelo estadistico que podríamos usar en una análisis de expresión diferencial. Verifica que si sea un modelo full rank. ¿Cúal sería el o los coeficientes de interés?
+
+```{r}
+## Ojo! Acá es importante que hayamos usado droplevels(rse_gene$PrimaryDx)
+## si no, vamos a tener un modelo que no sea _full rank_
+
+mod <- with(
+    colData(rse_gene),
+    model.matrix(~ PrimaryDx + BrainRegion + Sex)
+)
+```
+
+
+```{r}
+# Explorando el modelo
+sampleData = data.frame(
+  PrimaryDx = rse_gene$PrimaryDx,
+  BrainRegion = rse_gene$BrainRegion,
+  Sex = rse_gene$Sex
+)
+
+# Ploteo del modelo por casillas
+vd <- ExploreModelMatrix::VisualizeDesign(sampleData = sampleData,
+                      designFormula = ~ PrimaryDx + BrainRegion + Sex, 
+                      textSizeFitted = 2.5
+                      )
+cowplot::plot_grid(plotlist = vd$plotlist)
+
+```
